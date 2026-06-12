@@ -1,161 +1,124 @@
-# MLFLOW PROJECT
-# Get conda channels
-conda config --show channels
+# 🏥 Diabetic Patient Readmission Prediction
 
-# Build a MLFlow project, if you use one entry point with name (main)
-mlflow run . --experiment-name <exp-name> # here it is {readmission-prediction}
+An end-to-end Machine Learning project to predict diabetic patient readmission using multiple classification models with MLflow tracking, data balancing techniques, and model deployment via FastAPI (MLflow serving).
 
-# If you have multiple entry points
-mlflow run -e random_forest . --experiment-name readmission-prediction
-mlflow run -e logistic_regression . --experiment-name readmission-prediction
-mlflow run -e xgboost . --experiment-name readmission-prediction
-mlflow run -e gradient_boosting . --experiment-name readmission-prediction
-mlflow run -e decision_tree . --experiment-name readmission-prediction
-mlflow run -e knn . --experiment-name readmission-prediction # Adding KNN entry point
+---
 
+## 📌 Project Overview
 
+This project aims to predict whether a diabetic patient will be readmitted based on clinical and medical features.  
+It includes a full ML pipeline:
 
-```
+- Data preprocessing & feature engineering  
+- Handling class imbalance (SMOTE / SMOTE-Tomek / Undersampling)  
+- Training multiple ML models  
+- Hyperparameter tuning  
+- Experiment tracking using MLflow  
+- Model deployment using MLflow REST API  
 
-```
-## MLFLOW Models
-``` bash
-# serve the model via REST
-mlflow models serve -m "path" --port 8000 --env-manager=local
-mlflow models serve -m "file:///C:/Users/LAPTOP/Desktop/mlflow-main/mlflow-main/MLFlow%20Project/mlruns/551186705439064227/3a57548d8ce246e8959dd3657125d2c3/artifacts/models/XGBoost_smotetomek" --port 8001 --env-manager=local
+---
 
-# it will open in this link
-http://localhost:8000/invocations
-```
+## 📊 Dataset
 
-``` python
-# exmaple of data to be sent
+The dataset contains anonymized patient medical records including:
 
+- Demographics (age, gender)
+- Medical procedures
+- Medications
+- Lab results (A1C, insulin)
+- Diagnosis categories
+- Emergency & inpatient history
 
-## multiple samples
+⚠️ The dataset is highly imbalanced (~11% readmission cases).
+
+---
+
+## 🧹 Data Preprocessing & Feature Engineering
+
+- Removed irrelevant features:
+  - other_combination_therapies
+  - alpha_glucosidase_inhibitors
+  - meglitinides
+  - thiazolidinediones
+  - max_glu_serum
+  - binary_diabetesMed
+
+- Applied:
+  - Feature importance analysis (Decision Tree)
+  - Encoding categorical variables
+  - Scaling numerical features
+  - Handling missing/noisy data
+
+---
+
+## ⚖️ Handling Class Imbalance
+
+- Class Weighting (`class_weight="balanced"`)
+- SMOTE (Synthetic Minority Oversampling)
+- SMOTE-Tomek (Oversampling + Cleaning)
+- Random Undersampling
+
+---
+
+## 🤖 Machine Learning Models
+
+- Logistic Regression  
+- Decision Tree  
+- Random Forest  
+- XGBoost  
+- Gradient Boosting  
+- KNN  
+- Gaussian Naive Bayes  
+
+---
+
+## 📈 Evaluation Metrics
+
+- Accuracy  
+- Precision  
+- Recall  
+- F1-Score  
+- ROC-AUC  
+
+Focus on F1-score due to class imbalance.
+
+---
+
+## 🏆 Model Performance
+
+| Model              | Accuracy |
+|-------------------|----------|
+| Gradient Boosting | 88.85%   |
+| Random Forest     | 88.71%   |
+| XGBoost           | 88.70%   |
+| KNN               | 88.01%   |
+| Naive Bayes       | 84.59%   |
+| Decision Tree     | 80.61%   |
+| Logistic Regression | 68.02% |
+
+---
+
+## 🔥 Final Model
+
+**Selected Model: XGBoost**
+
+Reasons:
+- Best generalization
+- Stable across resampling methods
+- High F1-score for minority class
+- Production-ready performance
+
+---
+
+## 🧪 Hyperparameter Tuning
+
+Example (XGBoost best params):
+
+```python
 {
-  "dataframe_split": {
-    "columns": [
-      "gender",
-      "age",
-      "num_procedures",
-      "num_medications",
-      "number_emergency",
-      "number_inpatient",
-      "A1Cresult",
-      "insulin",
-      "change",
-      "time_diagnoses_interaction",
-      "diag_1_category",
-      "diag_2_category",
-      "diag_3_category",
-      "sulfonylureas",
-      "biguanides"
-    ],
-    "data": [
-      [0, 80.0, 2, 0.3379, 0, 0,  2, 2, 0, 104, 2,3, 2, 1,0],
-      [0, 90.0, 3, 0.21249, 0, 0, 2, 2, 0, 96, 3,0,3, 0,0],
-      [0, 40.0, 2, 0.199, 0, 0, 2, 2, 1, 81, 1,3,5, 0],
-      [1, 60.0, 0, 0.125, 0, 0, 2, 2, 0, 49,   0,1,0, 2,0],
-      [0, 40.0, 0, 0.175, 1, 0, 2, 0, 0, 56, 3, 1,1, 0,1],
-      [1, 80.0, 1, 0.375, 0, 0, 2, 2, 1,80, 3,3,3, 0,0],
-      [0, 60.0, 5, 0.012499, 0, 0, 2, 2, 1, 8, 3,5,4, 0,0],
-      [1, 60.0, 5, 0.15, 0, 0, 2, 3, 0, 108, 5,3,5, 0,0],
-      [1, 50.0, 4, 0.199, 0, 0, 2, 2, 0, 32, 3,3, 3, 1,0]
-    ]
-  }
+  'subsample': 0.8,
+  'n_estimators': 200,
+  'max_depth': 10,
+  'learning_rate': 0.1,
+  'colsample_bytree': 0.8
 }
-
-
-
-```
-
-``` bash 
-# if you want to use curl
-
-curl -X POST \
-  http://localhost:8000/invocations \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "dataframe_split": {
-    "columns": [
-      "gender",
-      "age",
-      "num_procedures",
-      "num_medications",
-      "number_emergency",
-      "number_inpatient",
-      "A1Cresult",
-      "insulin",
-      "change",
-      "time_diagnoses_interaction",
-      "diag_1_category",
-      "diag_2_category",
-      "diag_3_category",
-      "sulfonylureas",
-      "biguanides"
-    ],
-    "data": [
-     [0, 80.0, 2, 0.3379, 0, 0,  2, 2, 0, 104, 2,3, 2, 1,0],
-      [0, 90.0, 3, 0.21249, 0, 0, 2, 2, 0, 96, 3,0,3, 0,0],
-      [0, 40.0, 2, 0.199, 0, 0, 2, 2, 1, 81, 1,3,5, 0],
-      [1, 60.0, 0, 0.125, 0, 0, 2, 2, 0, 49,   0,1,0, 2,0],
-      [0, 40.0, 0, 0.175, 1, 0, 2, 0, 0, 56, 3, 1,1, 0,1],
-      [1, 80.0, 1, 0.375, 0, 0, 2, 2, 1,80, 3,3,3, 0,0],
-      [0, 60.0, 5, 0.012499, 0, 0, 2, 2, 1, 8, 3,5,4, 0,0],
-      [1, 60.0, 5, 0.15, 0, 0, 2, 3, 0, 108, 5,3,5, 0,0],
-      [1, 50.0, 4, 0.199, 0, 0, 2, 2, 0, 32, 3,3, 3, 1,0]
-    ]
-  }
-
-
-
-
-}'
-
-
-
-# if you want to use Powershell
-Invoke-RestMethod -Uri "http://localhost:8000/invocations" -Method Post -Headers @{"Content-Type" = "application/json"} -Body '{
-    
-  
-
- 
-  "dataframe_split": {
-    "columns": [
-      "gender",
-      "age",
-      "num_procedures",
-      "num_medications",
-      "number_emergency",
-      "number_inpatient",
-      "A1Cresult",
-      "insulin",
-      "change",
-      "time_diagnoses_interaction",
-      "diag_1_category",
-      "diag_2_category",
-      "diag_3_category",
-      "sulfonylureas",
-      "biguanides"
-    ],
-    "data": [0, 80.0, 2, 0.3379, 0, 0,  2, 2, 0, 104, 2,3, 2, 1,0],
-      [0, 90.0, 3, 0.21249, 0, 0, 2, 2, 0, 96, 3,0,3, 0,0],
-      [0, 40.0, 2, 0.199, 0, 0, 2, 2, 1, 81, 1,3,5, 0],
-      [1, 60.0, 0, 0.125, 0, 0, 2, 2, 0, 49,   0,1,0, 2,0],
-      [0, 40.0, 0, 0.175, 1, 0, 2, 0, 0, 56, 3, 1,1, 0,1],
-      [1, 80.0, 1, 0.375, 0, 0, 2, 2, 1,80, 3,3,3, 0,0],
-      [0, 60.0, 5, 0.012499, 0, 0, 2, 2, 1, 8, 3,5,4, 0,0],
-      [1, 60.0, 5, 0.15, 0, 0, 2, 3, 0, 108, 5,3,5, 0,0],
-      [1, 50.0, 4, 0.199, 0, 0, 2, 2, 0, 32, 3,3, 3, 1,0]
-  }
-
-
-
-
-}'
-
-
-```
-
-```
