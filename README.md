@@ -15,7 +15,21 @@ It includes a full ML pipeline:
 - Hyperparameter tuning  
 - Experiment tracking using MLflow  
 - Model deployment using MLflow REST API  
+👥 Team & Contribution
 
+This project was developed as a graduation project within the Digital Egypt Pioneers Initiative (DEPI) – Data Science Track
+
+It was completed collaboratively by a team of data science students under academic supervision.
+
+My main contributions included:
+
+- Data Cleaning 
+- Experiment Tracking and Model Management using MLflow
+- Backend API Development using FastAPI
+- API Documentation using Swagger (FastAPI Docs)
+- Building and Supporting Dashboards using Streamlit and Plotly Dash
+- Assisting in Model Deployment and Testing
+- Documentation and technical reporting of the project workflow
 ---
 
 ## 📊 Dataset
